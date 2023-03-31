@@ -30,6 +30,15 @@ def connect_mongo(conf):
     except Exception as e:
         sys.exit("can't connect to mongo: %s - %s" % (type(e), e))
 
+    print("setup corpus options...")
+    try:
+        mongo["hyphe"]["corpus"].update_one(
+            {"_id": conf["HYPHE_CORPUS"]},
+            {"$set": {"options.indexTextContent": True}}
+        )
+    except Exception as e:
+        sys.exit("can't edit corpus options: %s - %s" % (type(e), e))
+
     print("building indexes...")
     try:
         db["pages"].create_index([('indexed', pymongo.ASCENDING)])
