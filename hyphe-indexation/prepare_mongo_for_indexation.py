@@ -16,7 +16,7 @@ def read_config(path="config.inc"):
                     conf[key] = value.strip('"')
     except Exception as e:
         sys.exit("can't read config.inc: %s - %s" % (type(e), e))
-    print(conf, file=sys.stderr)
+    print("CONF:", conf, file=sys.stderr)
     return conf
 
 
@@ -35,6 +35,8 @@ def connect_mongo(conf):
         db["pages"].create_index([('indexed', pymongo.ASCENDING)])
         db["pages"].create_index([('timestamp', pymongo.ASCENDING)])
         db["pages"].create_index([('indexed', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
+        db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING)])
+        db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING), ('forgotten', pymongo.ASCENDING)])
     except Exception as e:
         sys.exit("can't create mongo indexes: %s - %s" % (type(e), e))
 
@@ -42,6 +44,13 @@ def connect_mongo(conf):
 
 
 def process_pages(pages_dir, db):
+
+    todo = db["pages"].count_documents({
+        'text_indexation_status': {'$nin': ['TO_INDEX', 'DONT_INDEX']}
+    })
+    if not todo:
+        sys.exit("ALL PAGES ALREADY PREPARED")
+    print(todo)
 
     db["pages"].update_many(
         {'text_indexation_status': {
