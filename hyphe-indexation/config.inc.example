@@ -1,2 +1,5 @@
 HYPHE_API="https://hyphe.medialab.sciences-po.fr/demo/api/"
 HYPHE_CORPUS="test-corpus"
+MONGO_HOST=localhost
+MONGO_PORT=27017
+PAGES_DIR="hyphe-IN-pages"
