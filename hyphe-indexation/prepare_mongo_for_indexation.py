@@ -57,7 +57,7 @@ def process_pages(pages_dir, db):
     todo = db["pages"].count_documents({
         'text_indexation_status': {'$nin': ['TO_INDEX', 'DONT_INDEX']}
     })
-    if not todo:
+    if not todo and not "--reset" in sys.argv:
         sys.exit("ALL PAGES ALREADY PREPARED")
     print(todo)
 
