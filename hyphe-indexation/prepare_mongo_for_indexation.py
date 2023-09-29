@@ -11,7 +11,7 @@ def read_config(path="config.inc"):
     try:
         with open(path) as f:
             for line in f.read().split("\n"):
-                if line and "=" in line:
+                if line and "=" in line and not line.startswith("#"):
                     key, value = line.split("=", 1)
                     conf[key] = value.strip('"')
     except Exception as e:
