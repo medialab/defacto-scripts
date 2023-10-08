@@ -32,3 +32,26 @@ k exec -n hyphe-medias db-6459f47478-9hjtx -- mongodump -d hyphe -c corpus --gzi
 # On rapatrie le tout
 scp -r boo@k8s-nfs-prod-01.medialab.sciences-po.fr:/srv/nfs/pvc-4a1254e9-9812-4dfd-9d29-6ad12eaafa97/mongodump/ hyphe-IN-pages/                                                   
 
+
+# On loade les dumps en local
+ls hyphe-IN-pages | grep -v csv | while read dump; do
+  mongorestore --gzip $dump
+done
+
+
+# TODO find a way to build pages.csv with page/webentity association without crashing container
+
+
+
+# On prépare les données pour l'indexation
+pyenv activate defacto
+python prepare_mongo_for_indexation.py
+
+
+# TODO index using the docker containers
+cd ~/dev/hyphe-elastic/hyphe_text_indexation
+pyenv activate hyphe-elastic
+sudo service elasticsearch restart
+python text_indexation.py
+
+
