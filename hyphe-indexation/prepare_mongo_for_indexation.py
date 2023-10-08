@@ -26,7 +26,6 @@ def connect_mongo(conf):
         mongo = pymongo.MongoClient(conf["MONGO_HOST"], int(conf["MONGO_PORT"]))
         corpus = "hyphe_%s" % conf["HYPHE_CORPUS"]
         db = mongo[corpus]
-        print("%s pages in MongoDB" % db["pages"].count_documents({}))
     except Exception as e:
         sys.exit("can't connect to mongo: %s - %s" % (type(e), e))
 
@@ -45,7 +44,10 @@ def connect_mongo(conf):
         db["pages"].create_index([('timestamp', pymongo.ASCENDING)])
         db["pages"].create_index([('indexed', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
         db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING)])
+        db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING), ('url', pymongo.ASCENDING)])
         db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING), ('forgotten', pymongo.ASCENDING)])
+        db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING), ('forgotten', pymongo.ASCENDING), ('_job', pymongo.ASCENDING)])
+        db["pages"].create_index([('text_indexation_status', pymongo.ASCENDING), ('forgotten', pymongo.ASCENDING), ('timestamp', pymongo.ASCENDING)])
     except Exception as e:
         sys.exit("can't create mongo indexes: %s - %s" % (type(e), e))
 
@@ -59,8 +61,9 @@ def process_pages(pages_dir, db):
     })
     if not todo and not "--reset" in sys.argv:
         sys.exit("ALL PAGES ALREADY PREPARED")
-    print(todo)
+    print("%s pages to reset" % todo)
 
+    # TODO CHANGE THIS INTO LOOPS BY PACKETS
     db["pages"].update_many(
         {'text_indexation_status': {
             '$nin': ['TO_INDEX', 'DONT_INDEX']
@@ -95,6 +98,9 @@ def process_pages(pages_dir, db):
                     print("Error while updating page %s: %s - %s" % (page[url_pos], type(e), e), file=sys.stderr)
 
             loading_bar.advance()
+
+    print("%s pages set to not index" % db["pages"].count_documents({'text_indexation_status': 'DONT_INDEX'}))
+    print("%s pages set to index" % db["pages"].count_documents({'text_indexation_status': 'TO_INDEX'}))
 
 
 if __name__ == "__main__":
