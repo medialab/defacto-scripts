@@ -3,6 +3,7 @@ from csv import DictReader
 from casanova import enricher
 from ural.lru import LRUTrie
 
+
 old_medias = {}
 old_headers = []
 trie = LRUTrie(strip_trailing_slash=True)
@@ -10,8 +11,10 @@ with open("medias_Fr_2020.csv") as f:
     for row in DictReader(f):
         if not old_headers:
             old_headers = ["old_%s" % k for k in row.keys()]
+
         for url in row["prefixes"].split("|"):
             trie.set(url, row["webentity_id"])
+
         old_medias[row["webentity_id"]] = row
 
 
@@ -20,6 +23,7 @@ with open("medias_Fr_2023.csv") as f, \
     rows = enricher(f, of, add=old_headers)
     name_pos = rows.headers["NAME"]
     prefixes_pos = rows.headers["PREFIXES AS URL"]
+
     for row in rows:
         matches = []
         for url in row[prefixes_pos].split(" "):
@@ -32,8 +36,8 @@ with open("medias_Fr_2023.csv") as f, \
             olddata = [old_medias[matches[0]][k.replace("old_", "")] for k in old_headers]
         elif len(matches) > 1:
             print("WARNING: found multiple old WebEntities matching %s:" % row[name_pos], row[prefixes_pos], [old_medias[i]["name"] for i in matches], file=stderr)
-
         else:
             print("INFO: could not find %s in old WebEntities:" % row[name_pos], row[prefixes_pos], file=stderr)
+
         rows.writerow(row, olddata)
 
