@@ -10,10 +10,16 @@ trie = LRUTrie(strip_trailing_slash=True)
 with open("medias_Fr_2020.csv") as f:
     for row in DictReader(f):
         if not old_headers:
-            old_headers = ["old_%s" % k for k in row.keys()]
+            old_headers = ["old_twitter"] + ["old_%s" % k for k in row.keys()]
 
+        twitters = set()
         for url in row["prefixes"].split("|"):
             trie.set(url, row["webentity_id"])
+            if "twitter.com/" in url:
+                tw = url.split("twitter.com/")[1].split("/")[0].lower().replace("%40", "")
+                twitters.add(tw)
+
+        row["twitter"] = "|".join(twitters)
 
         old_medias[row["webentity_id"]] = row
 
