@@ -28,3 +28,6 @@ xsv behead domains-to-fix.csv | while read line; do
   echo "$newline,$totaltweets,$users" >> domains-fixed.csv
 done
 
+casanova map median_tweets_per_month 'median(int(row[i]) for i in range(4, 16))' domains-fixed.csv | xsv select '!5-16' > domains-fixed+median.csv
+
+casanova map twitter_score '333 * (float(row["total_tweets 2022"]) / 187179114 + float(row["total_twitter_users 2022"]) / 18533542 + float(row.median_tweets_per_month) / 18725260.5)' domains-fixed+median.csv > domains-fixed+median+score.csv
